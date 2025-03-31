@@ -1,0 +1,94 @@
+#==============================================================================
+# OCI API CONFIGURATION
+#==============================================================================
+# These credentials are used to authenticate with Oracle Cloud Infrastructure
+user_ocid        = "ocid1.user.oc1..aaaaaaaa"
+fingerprint      = "4f:39:3c:06:9b:c9:fb:d6:xx:xx:xx:xx:xx:xx:xx:xx"
+tenancy_ocid     = "ocid1.tenancy.oc1..aaaaaaaa"
+region           = "uk-london-1"
+private_key_path = "/Users/user/.oci/oci-user-priv.pem"
+
+#==============================================================================
+# SSH KEYS CONFIGURATION
+#==============================================================================
+# These keys will be used to access the VMs created in OCI
+ssh_key_path     = "/Users/user/.ssh/id_rsa"
+ssh_key_pub_path = "/Users/user/.ssh/id_rsa.pub"
+
+#==============================================================================
+# CLUSTER CONFIGURATION
+#==============================================================================
+# Optional DNS configuration - uncommment to use
+# Changes lead to k8s cluster recreation (instances are preserved)
+# cluster_public_dns_name = "cluster.example.com"
+
+# LetsEncrypt configuration for SSL certificates
+letsencrypt_registration_email = "your@email.com"
+
+# Debug and development settings
+debug_create_cluster_admin = false
+
+# Local kubeconfig settings
+windows_overwrite_local_kube_config = false
+
+#==============================================================================
+# SECURITY RULES CONFIGURATION
+#==============================================================================
+# These rules define what traffic is allowed to/from your cluster
+
+#------------------------------------------------------------------------------
+# PUBLIC SUBNET RULES
+#------------------------------------------------------------------------------
+# TCP rules for public subnet
+tcp_ingress_rules = {
+  ssh       = { port = 22, desc = "SSH access" }
+  http      = { port = 80, desc = "HTTP traffic" }
+  https     = { port = 443, desc = "HTTPS traffic" }
+  kubeapi   = { port = 6443, desc = "Kubernetes API" }
+  metrics   = { port = 9100, desc = "Node metrics" }
+  kubelet   = { port = 10250, desc = "Kubelet" }
+  nodehttp  = { port = 30080, desc = "NodePort HTTP" }
+  nodehttps = { port = 30443, desc = "NodePort HTTPS" }
+}
+
+# ICMP rules for public subnet
+icmp_ingress_rules = {
+  public  = { cidr_block = "0.0.0.0/0", desc = "public" }
+  private = { cidr_block = "10.0.0.0/16", desc = "private" }
+}
+
+# UDP rules for public subnet
+udp_ingress_rules = {
+  flannel = { port = 8472, desc = "flannel" }
+  ovpn    = { port = 31194, desc = "ovpn" } # OpenVPN port
+}
+
+#------------------------------------------------------------------------------
+# PRIVATE SUBNET RULES
+#------------------------------------------------------------------------------
+# TCP single port rules for private subnet
+private_tcp_ingress_rules = {
+  ssh     = { port = 22, source = "0.0.0.0/0", desc = "SSH access" }
+  kubeapi = { port = 6443, source = "0.0.0.0/0", desc = "Kubernetes API server" }
+  kubelet = { port = 10250, source = "10.0.0.0/16", desc = "Kubelet API" }
+  webhook = { port = 8443, source = "10.0.0.0/16", desc = "Nginx ingress-controller admission webhook" }
+}
+
+# TCP port range rules for private subnet
+private_tcp_range_rules = {
+  nodeport = { min_port = 30000, max_port = 32767, source = "0.0.0.0/0", desc = "NodePort Services" }
+}
+
+# ICMP rules for private subnet
+private_icmp_ingress_rules = {
+  internet = { source = "0.0.0.0/0", desc = "internet", type = 3, code = 4 }, # Fragmentation needed
+  vcn      = { source = "10.0.0.0/16", desc = "VCN", type = 3 }               # Destination unreachable
+}
+
+# UDP rules for private subnet
+private_udp_ingress_rules = {
+  flannel = { port = 8472, source = "10.0.0.0/16", desc = "Flannel overlay network" }
+}
+
+# Availability domain for the cluster
+availability_domain = 0
