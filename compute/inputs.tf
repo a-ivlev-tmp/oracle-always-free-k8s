@@ -18,18 +18,25 @@ variable "leader" {
 }
 
 variable "workers" {
+  description = "List of worker-specific configurations"
+  type = list(object({
+    name          = string
+    shape         = string
+    ocpus         = number
+    memory_in_gbs = number
+  }))
+}
+
+variable "workers_shared_conf" {
+  description = "Common configuration for all workers"
   type = object({
-    count            = number
-    shape            = string
     image = object({
       operating_system         = string
       operating_system_version = string
     })
-    ocpus            = number
-    memory_in_gbs    = number
-    base_hostname    = string
-    subnet_id        = string
-    assign_public_ip = bool
+    subnet_id                = string
+    assign_public_ip         = bool
+    shape                    = string
   })
 }
 

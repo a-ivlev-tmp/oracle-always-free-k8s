@@ -38,44 +38,56 @@ module "compute" {
     subnet_id        = module.network.public_subnet_id
     assign_public_ip = true
   }
-  workers = {
-    count = 3
-    shape = "VM.Standard.A1.Flex"
+
+  workers = [
+    {
+      name          = "worker-1"
+      shape         = "VM.Standard.A1.Flex"
+      ocpus         = 2
+      memory_in_gbs = 14
+    },
+    {
+      name          = "worker-2"
+      shape         = "VM.Standard.A1.Flex"
+      ocpus         = 1
+      memory_in_gbs = 7
+    }
+  ]
+
+  workers_shared_conf = {
     image = {
       operating_system         = "Canonical Ubuntu"
       operating_system_version = "24.04"
     }
-    ocpus            = 1
-    memory_in_gbs    = 7
-    base_hostname    = "worker-ld"
-    subnet_id        = module.network.public_subnet_id
-    assign_public_ip = true
+    shape         = "VM.Standard.A1.Flex"
+    subnet_id                = module.network.public_subnet_id
+    assign_public_ip         = true
   }
 }
 
-module "k8s" {
-  source                              = "./k8s"
-  ssh_key_path                        = var.ssh_key_path
-  cluster_public_ip                   = module.network.reserved_public_ip.ip_address
-  cluster_public_dns_name             = var.cluster_public_dns_name
-  load_balancer_id                    = module.network.load_balancer_id
-  leader                              = module.compute.leader
-  workers                             = module.compute.workers
-  windows_overwrite_local_kube_config = var.windows_overwrite_local_kube_config
-}
+# module "k8s" {
+#   source                              = "./k8s"
+#   ssh_key_path                        = var.ssh_key_path
+#   cluster_public_ip                   = module.network.reserved_public_ip.ip_address
+#   cluster_public_dns_name             = var.cluster_public_dns_name
+#   load_balancer_id                    = module.network.load_balancer_id
+#   leader                              = module.compute.leader
+#   workers                             = module.compute.workers
+#   windows_overwrite_local_kube_config = var.windows_overwrite_local_kube_config
+# }
 
-module "k8s_scaffold" {
-  source                         = "./k8s-scaffold"
-  depends_on                     = [module.k8s]
-  ssh_key_path                   = var.ssh_key_path
-  cluster_public_ip              = module.network.reserved_public_ip.ip_address
-  cluster_public_dns_name        = var.cluster_public_dns_name
-  letsencrypt_registration_email = var.letsencrypt_registration_email
-  load_balancer_id               = module.network.load_balancer_id
-  leader                         = module.compute.leader
-  workers                        = module.compute.workers
-  debug_create_cluster_admin     = var.debug_create_cluster_admin
-}
+# module "k8s_scaffold" {
+#   source                         = "./k8s-scaffold"
+#   depends_on                     = [module.k8s]
+#   ssh_key_path                   = var.ssh_key_path
+#   cluster_public_ip              = module.network.reserved_public_ip.ip_address
+#   cluster_public_dns_name        = var.cluster_public_dns_name
+#   letsencrypt_registration_email = var.letsencrypt_registration_email
+#   load_balancer_id               = module.network.load_balancer_id
+#   leader                         = module.compute.leader
+#   workers                        = module.compute.workers
+#   debug_create_cluster_admin     = var.debug_create_cluster_admin
+# }
 
 # module "k8s_helm" {
 #   source     = "./k8s-helm"
